@@ -5,9 +5,9 @@ import { Button } from "react-native-paper";
 import { getFlexiblePixels } from "../MyUtils";
 import { useFonts } from "expo-font";
 
-function HomeScreen() {
+function HomeScreen(props) {
   let [fontsLoaded] = useFonts({
-    "Pacifico": require("../assets/Fonts/Pacifico/Pacifico-Regular.ttf"), 
+    Pacifico: require("../assets/Fonts/Pacifico/Pacifico-Regular.ttf"),
   });
 
   return (
@@ -31,7 +31,11 @@ function HomeScreen() {
       </View>
       <View style={styles.startBtn}>
         <View style={styles.startBtn}>
-          <Button style={styles.myBtn} labelStyle={{ textTransform: "uppercase" }} onPress={() => console.log("Pressed")}>
+          <Button
+            style={styles.myBtn}
+            labelStyle={{ textTransform: "uppercase" }}
+            onPress={() => { props.navigation.replace("Timer") }}
+          >
             {fontsLoaded ? (
               <Text style={styles.btnText}>Let's GO</Text>
             ) : (

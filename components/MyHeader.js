@@ -1,13 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  ImageBackground,
-  Dimensions,
-} from "react-native";
-import { Appbar, Avatar } from "react-native-paper";
+import { View, StyleSheet, ImageBackground } from "react-native";
 import { getFlexiblePixels } from "../MyUtils";
 
 function MyHeader() {
@@ -35,10 +27,8 @@ const styles = StyleSheet.create({
     height: getFlexiblePixels((pixels = 74), (isWidth = false)), //74,
     left: 0,
     top: 0,
-    // borderWidth: 1, // just for testing purpose only
   },
   rectangle: {
-    // borderWidth: 1, // just for testing purpose only
     position: "absolute",
     width: getFlexiblePixels((pixels = 122), (isWidth = true)),
     height: getFlexiblePixels((pixels = 74), (isWidth = false)),
