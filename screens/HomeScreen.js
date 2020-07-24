@@ -34,7 +34,7 @@ function HomeScreen(props) {
           <Button
             style={styles.myBtn}
             labelStyle={{ textTransform: "uppercase" }}
-            onPress={() => { props.navigation.replace("Timer") }}
+            onPress={() => { props.navigation.navigate("Timer") }}
           >
             {fontsLoaded ? (
               <Text style={styles.btnText}>Let's GO</Text>

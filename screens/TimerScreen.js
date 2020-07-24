@@ -7,7 +7,7 @@ import { useFonts } from "expo-font";
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
-function TimerScreen() {
+function TimerScreen(props) {
   let [fontsLoaded] = useFonts({
     Pacifico: require("../assets/Fonts/Pacifico/Pacifico-Regular.ttf"),
   });
@@ -23,8 +23,7 @@ function TimerScreen() {
     }
 
     if (timerNumber === 0) {
-      console.log("timer reaches.......");
-      // replacing window code goes here
+      props.navigation.replace("Workout");
     }
 
     return () => {
