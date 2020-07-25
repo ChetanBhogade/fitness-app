@@ -77,7 +77,7 @@ export default class WorkoutScreen extends Component {
           console.log("its reaches after 10 seconds");
           this.playbackInstance.stopAsync();
           clearInterval(this.intervalId)
-          // this.props.navigation.replace("Timer", {timerSeconds: 10})
+          this.props.navigation.replace("Timer", {timerSeconds: 10})
         }
       }
     }, 1000);

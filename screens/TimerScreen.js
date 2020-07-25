@@ -12,7 +12,9 @@ function TimerScreen(props) {
     Pacifico: require("../assets/Fonts/Pacifico/Pacifico-Regular.ttf"),
   });
 
-  const number = props.navigation.timerSeconds ? props.navigation.timerSeconds : 3;
+  const number = props.route.params.timerSeconds
+    ? props.route.params.timerSeconds
+    : 3;
 
   const [timerNumber, setTimerNumber] = useState(number);
 

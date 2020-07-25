@@ -14,7 +14,7 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator headerMode="none">
         <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Timer" component={TimerScreen} />
+        <Stack.Screen name="Timer" component={TimerScreen} initialParams={{timerSeconds: 3}} />
         <Stack.Screen name="Workout" component={WorkoutScreen} />
       </Stack.Navigator>
       <StatusBar hidden />
