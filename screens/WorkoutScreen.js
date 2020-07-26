@@ -74,7 +74,7 @@ export default class WorkoutScreen extends Component {
           });
 
         if (this.state.currentPlaybackDuration.seconds === 10) {
-          console.log("its reaches after 10 seconds");
+          console.log("workout reaches after 10 seconds");
           this.playbackInstance.stopAsync();
           clearInterval(this.intervalId)
           this.props.navigation.replace("Timer", {timerSeconds: 10})
@@ -237,7 +237,7 @@ export default class WorkoutScreen extends Component {
           </View>
 
           {this.state.fontsLoaded ? (
-            <Text style={styles.workoutName}>Push Up</Text>
+            <Text style={styles.workoutName}>{this.props.route.params.data.title}</Text>
           ) : (
             <Text>Loading...</Text>
           )}

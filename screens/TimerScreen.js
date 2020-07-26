@@ -8,16 +8,35 @@ const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 function TimerScreen(props) {
+  // props value
+  const { timerSeconds } = props.route.params;
+  const { data } = props.route.params;
+  const { update } = props.route.params;
+
+  // load fonts hook
   let [fontsLoaded] = useFonts({
     Pacifico: require("../assets/Fonts/Pacifico/Pacifico-Regular.ttf"),
   });
 
-  const number = props.route.params.timerSeconds
-    ? props.route.params.timerSeconds
-    : 3;
+  const number = timerSeconds ? timerSeconds : 5;
 
+  // state hook
   const [timerNumber, setTimerNumber] = useState(number);
+  const [sendItem, setSendItem] = useState({});
+  const [checked, setChecked] = useState(false);
 
+  // own functions
+  const checkData = (data) => {
+    data.map((item, index) => {
+      if (!item.isCompleted) {
+        setSendItem(item);
+        update(item.id);
+        console.log("checking data...")
+      }
+    });
+  };
+
+  // useEffect hook
   useEffect(() => {
     var intervalNo;
     if (timerNumber > 0) {
@@ -27,13 +46,22 @@ function TimerScreen(props) {
     }
 
     if (timerNumber === 0) {
-      props.navigation.replace("Workout");
+      if (! checked) {
+        checkData(data)
+        setChecked(true)
+        console.log("timer reaches zero...")
+      }
+    }
+    
+    if (checked) {
+      props.navigation.replace("Workout", { data: sendItem });
+      console.log("sending data to workout screen...")
     }
 
     return () => {
       clearInterval(intervalNo);
     };
-  }, [setInterval, timerNumber]);
+  }, [setInterval, timerNumber, checked]);
 
   return (
     <View>
