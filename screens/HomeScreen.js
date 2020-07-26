@@ -4,11 +4,34 @@ import MyHeader from "../components/MyHeader";
 import { Button } from "react-native-paper";
 import { getFlexiblePixels } from "../MyUtils";
 import { useFonts } from "expo-font";
+import AsyncStorage from "@react-native-community/async-storage";
+import { data } from "../Utils";
 
 function HomeScreen(props) {
   let [fontsLoaded] = useFonts({
     Pacifico: require("../assets/Fonts/Pacifico/Pacifico-Regular.ttf"),
   });
+
+  const storeData = async (value) => {
+    try {
+      const jsonValue = JSON.stringify(value);
+      await AsyncStorage.setItem("@WorkoutData", jsonValue);
+    } catch (e) {
+      // saving error
+      console.log("Error Occur while storing data. Error: ", e);
+    }
+  };
+
+  const handleClick = () => {
+    const properData = data.map((item) => {
+      return {
+        ...item,
+        isCompleted: false,
+      };
+    });
+    storeData(properData);
+    props.navigation.navigate("Timer", { timerSeconds: 3 });
+  };
 
   return (
     <View style={styles.container}>
@@ -34,7 +57,9 @@ function HomeScreen(props) {
           <Button
             style={styles.myBtn}
             labelStyle={{ textTransform: "uppercase" }}
-            onPress={() => { props.navigation.navigate("Timer", {timerSeconds: 3}) }}
+            onPress={() => {
+              handleClick();
+            }}
           >
             {fontsLoaded ? (
               <Text style={styles.btnText}>Let's GO</Text>

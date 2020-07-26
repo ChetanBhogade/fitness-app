@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Dimensions } from "react-native";
 import MyHeader from "../components/MyHeader";
 import { getFlexiblePixels } from "../MyUtils";
 import { useFonts } from "expo-font";
+import AsyncStorage from "@react-native-community/async-storage";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -10,58 +11,114 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 function TimerScreen(props) {
   // props value
   const { timerSeconds } = props.route.params;
-  const { data } = props.route.params;
-  const { update } = props.route.params;
 
-  // load fonts hook
+  // load fonts
   let [fontsLoaded] = useFonts({
     Pacifico: require("../assets/Fonts/Pacifico/Pacifico-Regular.ttf"),
   });
 
   const number = timerSeconds ? timerSeconds : 5;
 
-  // state hook
-  const [timerNumber, setTimerNumber] = useState(number);
-  const [sendItem, setSendItem] = useState({});
-  const [checked, setChecked] = useState(false);
+  const [timerNo, setTimerNo] = useState(number);
+  const [isDone, setIsDone] = useState(false);
+  const [myData, setMyData] = useState([]);
+  const [sendItem, setSendItem] = useState("");
 
-  // own functions
-  const checkData = (data) => {
-    data.map((item, index) => {
-      if (!item.isCompleted) {
-        setSendItem(item);
-        update(item.id);
-        console.log("checking data...")
-      }
-    });
+  const storeData = async (value) => {
+    try {
+      const jsonValue = JSON.stringify(value);
+      await AsyncStorage.setItem("@WorkoutData", jsonValue);
+    } catch (e) {
+      // saving error
+      console.log("Error Occur while storing data. Error: ", e);
+    }
   };
 
-  // useEffect hook
+  const getData = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem("@WorkoutData");
+      // return jsonValue != null ? JSON.parse(jsonValue) : null;
+      if (jsonValue !== null) {
+        // value previously stored
+        const convertedList = JSON.parse(jsonValue);
+        setMyData(convertedList);
+      }
+    } catch (e) {
+      // error reading value
+      console.log("Error Occur while retriving data. Error: ", e);
+    }
+  };
+
+  const updateData = (data, id) => {
+    // update the workout completed as true inside the item with that id
+    const newData = data.map((item) => {
+      if (item.id === id) {
+        return {
+          ...item,
+          isCompleted: true,
+        };
+      } else {
+        return item;
+      }
+    });
+
+    storeData(newData);
+  };
+
+  const checkData = (data) => {
+    // checks the data - if data item has any false workout item the it should reutrn that workout & update it
+    // if no workout item is false then it should return null / false
+    var workoutItem = null;
+
+    for (let index = 0; index < data.length; index++) {
+      const item = data[index];
+      if (item.isCompleted === false) {
+        updateData(data, item.id);
+        workoutItem = item;
+        break;
+      }
+    }
+
+    return workoutItem;
+  };
+
   useEffect(() => {
     var intervalNo;
-    if (timerNumber > 0) {
+    if (timerNo > 0) {
       intervalNo = setInterval(() => {
-        setTimerNumber(timerNumber - 1);
+        setTimerNo(timerNo - 1);
       }, 1000);
     }
 
-    if (timerNumber === 0) {
-      if (! checked) {
-        checkData(data)
-        setChecked(true)
-        console.log("timer reaches zero...")
-      }
+    if (myData.length <= 0) {
+      getData();
     }
-    
-    if (checked) {
-      props.navigation.replace("Workout", { data: sendItem });
-      console.log("sending data to workout screen...")
+
+    if (timerNo === 0) {
+      if (!isDone) {
+        // replacing window code goes here
+        const availableItem = checkData(myData);
+        if (availableItem !== null) {
+          setSendItem(availableItem);
+        } else {
+          setSendItem(-1);
+        }
+        setIsDone(true);
+      }
+
+      if (isDone) {
+        if (sendItem === -1) {
+          props.navigation.replace("Success");
+        } else {
+          props.navigation.replace("Workout", { data: sendItem });
+        }
+      }
     }
 
     return () => {
       clearInterval(intervalNo);
     };
-  }, [setInterval, timerNumber, checked]);
+  }, [setInterval, timerNo, isDone]);
 
   return (
     <View>
@@ -75,7 +132,7 @@ function TimerScreen(props) {
       <View style={styles.timer}>
         <View style={styles.eclipse}>
           {fontsLoaded ? (
-            <Text style={styles.timerNumber}>{timerNumber}</Text>
+            <Text style={styles.timerNumber}>{timerNo}</Text>
           ) : (
             <Text>Loading</Text>
           )}
