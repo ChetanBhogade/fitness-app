@@ -5,12 +5,14 @@ import {
   StyleSheet,
   Dimensions,
   ImageBackground,
+  Image,
 } from "react-native";
 import MyHeader from "../components/MyHeader";
 import { getFlexiblePixels } from "../MyUtils";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import * as Font from "expo-font";
 import { Audio } from "expo-av";
+import { AppLoading } from "expo";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -19,13 +21,16 @@ const customFonts = {
   Pacifico: require("../assets/Fonts/Pacifico/Pacifico-Regular.ttf"),
 };
 
-const calculateTime = (milliSeconds) => {
+const calculateTime = (value, reverse = false) => {
   const time = {
-    days: Math.floor(milliSeconds / (1000 * 60 * 60 * 24)),
-    hours: Math.floor((milliSeconds / (1000 * 60 * 60)) % 24),
-    minutes: Math.floor((milliSeconds / (1000 * 60)) % 60),
-    seconds: Math.floor((milliSeconds / 1000) % 60),
+    days: Math.floor(value / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((value / (1000 * 60 * 60)) % 24),
+    minutes: Math.floor((value / (1000 * 60)) % 60),
+    seconds: Math.floor((value / 1000) % 60),
   };
+  if (reverse) {
+    return value * 60000;
+  }
   return time;
 };
 
@@ -36,13 +41,16 @@ export default class WorkoutScreen extends Component {
     this.playbackInstance = null;
     this.intervalId = null;
 
+    this.data = this.props.route.params.data;
+
     this.state = {
       fontsLoaded: false,
       playerSound: null,
+      totalMilliSeconds: calculateTime(this.data.duration, (reverse = true)),
       audioLength: 0,
       currentPlaybackDuration: 0,
-      totalMilliSeconds: 0,
-      indicatorPercentage: 0,
+      indicatorPercentage: 0, //need to be check
+      updateMillis: 0,
     };
   }
 
@@ -57,28 +65,19 @@ export default class WorkoutScreen extends Component {
 
   calculatePlayerTime = () => {
     this.intervalId = setInterval(() => {
-      if (this.state.playerSound !== null) {
-        this.state.playerSound
-          .getStatusAsync()
-          .then((result) => {
-            this.setState({
-              currentPlaybackDuration: calculateTime(result.positionMillis),
-              indicatorPercentage: this.getPercentage(
-                result.positionMillis,
-                this.state.totalMilliSeconds
-              ),
-            });
-          })
-          .catch((error) => {
-            console.log("An Error Occur: ", error);
-          });
+      this.setState({
+        updateMillis: this.state.updateMillis + 1000,
+        currentPlaybackDuration: calculateTime(this.state.updateMillis),
+        indicatorPercentage: this.getPercentage(
+          this.state.updateMillis,
+          this.state.totalMilliSeconds
+        ),
+      });
 
-        if (this.state.currentPlaybackDuration.seconds === 10) {
-          console.log("workout reaches after 10 seconds");
-          this.playbackInstance.stopAsync();
-          clearInterval(this.intervalId)
-          this.props.navigation.replace("Timer", {timerSeconds: 10})
-        }
+      if (this.state.currentPlaybackDuration.minutes === this.data.duration) {
+        this.playbackInstance.stopAsync();
+        clearInterval(this.intervalId);
+        this.props.navigation.replace("Timer", { timerSeconds: 40 });
       }
     }, 1000);
   };
@@ -127,7 +126,7 @@ export default class WorkoutScreen extends Component {
     //  Save the response of sound in playbackInstance
     this.playbackInstance = sound;
     //  Make the loop of Audio
-    this.playbackInstance.setIsLoopingAsync(false);
+    this.playbackInstance.setIsLoopingAsync(true);
     //  Play the Music
     this.playbackInstance.playAsync();
 
@@ -141,7 +140,7 @@ export default class WorkoutScreen extends Component {
       .then((result) => {
         this.setState({
           audioLength: calculateTime(result.durationMillis),
-          totalMilliSeconds: result.durationMillis,
+          // totalMilliSeconds: result.durationMillis,
         });
       })
       .catch((error) => {
@@ -157,139 +156,138 @@ export default class WorkoutScreen extends Component {
   render() {
     return (
       <View style={styles.main}>
-        <View style={styles.workoutInformation}>
-          <View style={styles.setsInformation}>
-            <View style={styles.getSetInfo}>
-              {this.state.fontsLoaded ? (
-                <View>
-                  <Text
-                    style={{
-                      ...styles.infoStyle,
-                      width: getFlexiblePixels(
-                        (pixels = 160),
-                        (isWidth = true)
-                      ),
-                      height: getFlexiblePixels(
-                        (pixels = 30),
-                        (isWidth = false)
-                      ),
-                      left: "3%",
-                      top: getFlexiblePixels((pixels = 7), (isWidth = false)),
-                    }}
-                  >
-                    Recommonded Sets
-                  </Text>
-
-                  <Text
-                    style={{
-                      ...styles.infoStyle,
-                      width: getFlexiblePixels(
-                        (pixels = 160),
-                        (isWidth = true)
-                      ),
-                      height: getFlexiblePixels(
-                        (pixels = 30),
-                        (isWidth = false)
-                      ),
-                      right: "3%",
-                      top: getFlexiblePixels((pixels = 7), (isWidth = false)),
-                    }}
-                  >
-                    Recommonded Reps
-                  </Text>
-
-                  <Text
-                    style={{
-                      ...styles.infoStyle,
-                      width: getFlexiblePixels((pixels = 64), (isWidth = true)),
-                      height: getFlexiblePixels(
-                        (pixels = 36),
-                        (isWidth = false)
-                      ),
-                      left: "15%",
-                      top: getFlexiblePixels((pixels = 50), (isWidth = false)),
-                      fontSize: 22,
-                    }}
-                  >
-                    3
-                  </Text>
-
-                  <Text
-                    style={{
-                      ...styles.infoStyle,
-                      width: getFlexiblePixels((pixels = 64), (isWidth = true)),
-                      height: getFlexiblePixels(
-                        (pixels = 36),
-                        (isWidth = false)
-                      ),
-                      right: "15%",
-                      top: getFlexiblePixels((pixels = 50), (isWidth = false)),
-                      fontSize: 22,
-                    }}
-                  >
-                    15
-                  </Text>
-                </View>
-              ) : (
-                <Text>Loading...</Text>
-              )}
-            </View>
-          </View>
-
-          {this.state.fontsLoaded ? (
-            <Text style={styles.workoutName}>{this.props.route.params.data.title}</Text>
-          ) : (
-            <Text>Loading...</Text>
-          )}
-        </View>
-        <View style={styles.playerSection}>
-          <View style={styles.playerIndicator}>
-            <View
-              style={{
-                ...styles.activeIndicator,
-                width: `${this.state.indicatorPercentage}%`,
-              }}
-            ></View>
-          </View>
-          {this.state.fontsLoaded ? (
-            <Text style={styles.playerTimer1}>
-              {this.state.currentPlaybackDuration.minutes}:
-              {this.state.currentPlaybackDuration.seconds}
-            </Text>
-          ) : (
-            <Text>00:00</Text>
-          )}
-          {this.state.fontsLoaded ? (
-            <Text style={styles.playerTimer2}>
-              {this.state.audioLength.minutes}:{this.state.audioLength.seconds}
-            </Text>
-          ) : (
-            <Text>00:00</Text>
-          )}
-          <View style={styles.playerSection}></View>
-        </View>
-
         {this.state.fontsLoaded ? (
-          <Text style={styles.musicTrack}>Track 1</Text>
-        ) : (
-          <Text>Loading...</Text>
-        )}
+          <View>
+            <View style={styles.workoutInformation}>
+              <View style={styles.setsInformation}>
+                <View style={styles.getSetInfo}>
+                  <View>
+                    <Text
+                      style={{
+                        ...styles.infoStyle,
+                        width: getFlexiblePixels(
+                          (pixels = 160),
+                          (isWidth = true)
+                        ),
+                        height: getFlexiblePixels(
+                          (pixels = 30),
+                          (isWidth = false)
+                        ),
+                        left: "3%",
+                        top: getFlexiblePixels((pixels = 7), (isWidth = false)),
+                      }}
+                    >
+                      Recommonded Sets
+                    </Text>
 
-        <View style={styles.musicSection}>
-          <View style={styles.linearLine}></View>
-          <View style={styles.iconHolder}>
-            <Icon name="queue-music" size={40} />
+                    <Text
+                      style={{
+                        ...styles.infoStyle,
+                        width: getFlexiblePixels(
+                          (pixels = 160),
+                          (isWidth = true)
+                        ),
+                        height: getFlexiblePixels(
+                          (pixels = 30),
+                          (isWidth = false)
+                        ),
+                        right: "3%",
+                        top: getFlexiblePixels((pixels = 7), (isWidth = false)),
+                      }}
+                    >
+                      Recommonded Reps
+                    </Text>
+
+                    <Text
+                      style={{
+                        ...styles.infoStyle,
+                        width: getFlexiblePixels(
+                          (pixels = 64),
+                          (isWidth = true)
+                        ),
+                        height: getFlexiblePixels(
+                          (pixels = 36),
+                          (isWidth = false)
+                        ),
+                        left: "15%",
+                        top: getFlexiblePixels(
+                          (pixels = 50),
+                          (isWidth = false)
+                        ),
+                        fontSize: 22,
+                      }}
+                    >
+                      3
+                    </Text>
+
+                    <Text
+                      style={{
+                        ...styles.infoStyle,
+                        width: getFlexiblePixels(
+                          (pixels = 64),
+                          (isWidth = true)
+                        ),
+                        height: getFlexiblePixels(
+                          (pixels = 36),
+                          (isWidth = false)
+                        ),
+                        right: "15%",
+                        top: getFlexiblePixels(
+                          (pixels = 50),
+                          (isWidth = false)
+                        ),
+                        fontSize: 22,
+                      }}
+                    >
+                      15
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              <Text style={styles.workoutName}>{this.data.title}</Text>
+            </View>
+            <View style={styles.playerSection}>
+              <View style={styles.playerIndicator}>
+                <View
+                  style={{
+                    ...styles.activeIndicator,
+                    width: `${this.state.indicatorPercentage}%`,
+                  }}
+                ></View>
+              </View>
+              <Text style={styles.playerTimer1}>
+                {this.state.currentPlaybackDuration.minutes}:
+                {this.state.currentPlaybackDuration.seconds}
+              </Text>
+
+              <Text style={styles.playerTimer2}>{this.data.duration}:00</Text>
+
+              <View style={styles.playerSection}></View>
+            </View>
+
+            <Text style={styles.musicTrack}>Playing Track</Text>
+
+            <View style={styles.musicSection}>
+              <View style={styles.linearLine}></View>
+              <View style={styles.iconHolder}>
+                <Icon name="queue-music" size={40} />
+              </View>
+            </View>
+
+            <View style={styles.imageRectangle}>
+              <Image
+                style={styles.workoutImg}
+                source={this.data.image}
+                // source={require("../assets/Images/1.png")}
+              />
+            </View>
+
+            <MyHeader />
           </View>
-        </View>
-
-        <View style={styles.imageRectangle}>
-          <ImageBackground
-            style={styles.workoutImg}
-            source={require("../assets/Images/1.png")}
-          />
-        </View>
-
-        <MyHeader />
+        ) : (
+          <AppLoading />
+        )}
       </View>
     );
   }
@@ -348,10 +346,10 @@ const styles = StyleSheet.create({
   },
   musicTrack: {
     position: "absolute",
-    width: getFlexiblePixels((pixels = 106), (isWidth = true)),
+    width: getFlexiblePixels((pixels = 156), (isWidth = true)),
     height: getFlexiblePixels((pixels = 31), (isWidth = false)),
     left:
-      (SCREEN_WIDTH - getFlexiblePixels((pixels = 106), (isWidth = true))) / 2,
+      (SCREEN_WIDTH - getFlexiblePixels((pixels = 156), (isWidth = true))) / 2,
     top: getFlexiblePixels((pixels = 785), (isWidth = false)),
     fontFamily: "Pacifico",
     fontStyle: "normal",
