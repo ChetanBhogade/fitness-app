@@ -1,13 +1,25 @@
-import React from "react";
-import { View, StyleSheet, ImageBackground, Text } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  StyleSheet,
+  ImageBackground,
+  Text,
+  Modal,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Image,
+} from "react-native";
 import MyHeader from "../components/MyHeader";
-import { Button } from "react-native-paper";
+import { Button, TextInput, List } from "react-native-paper";
 import { getFlexiblePixels } from "../MyUtils";
 import { useFonts } from "expo-font";
 import AsyncStorage from "@react-native-community/async-storage";
 import { data } from "../Utils";
 
 function HomeScreen(props) {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [numberOfSets, setNumberOfSets] = useState();
+
   let [fontsLoaded] = useFonts({
     Pacifico: require("../assets/Fonts/Pacifico/Pacifico-Regular.ttf"),
   });
@@ -22,19 +34,101 @@ function HomeScreen(props) {
     }
   };
 
-  const handleClick = () => {
-    const properData = data.map((item) => {
+  const handleModalSubmit = () => {
+    const properData = [];
+
+    for (let itemIndex = 0; itemIndex < data.length; itemIndex++) {
+      for (let setIndex = 0; setIndex < numberOfSets; setIndex++) {
+        const element = data[itemIndex];
+        properData.push({ ...element, currentSet: setIndex + 1 });
+      }
+    }
+
+    const updatedData = properData.map((item, index) => {
       return {
         ...item,
         isCompleted: false,
+        id: index,
+        totalSet: numberOfSets,
       };
     });
-    storeData(properData);
+
+    storeData(updatedData);
+    setModalVisible(false);
     props.navigation.navigate("Timer", { timerSeconds: 3 });
   };
 
   return (
     <View style={styles.container}>
+      <Modal
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => {
+          setModalVisible(false);
+        }}
+        visible={modalVisible}
+      >
+        <TouchableWithoutFeedback
+          onPress={() => {
+            Keyboard.dismiss();
+          }}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.listItems}>
+              {data.map((item) => {
+                return (
+                  <List.Item
+                    title={item.title}
+                    key={item.id}
+                    style={{
+                      borderBottomWidth: 1,
+                      borderBottomColor: "#DAE0E2",
+                      marginHorizontal: 10,
+                    }}
+                    titleStyle={{
+                      color: "white",
+                      fontSize: 25,
+                      fontWeight: "bold",
+                    }}
+                    left={(props) => (
+                      <Image
+                        source={item.image}
+                        style={{
+                          width: 70,
+                          height: 70,
+                          borderRadius: 30,
+                          backgroundColor: "white",
+                          marginRight: 25,
+                        }}
+                      />
+                    )}
+                  />
+                );
+              })}
+            </View>
+            <View>
+              <TextInput
+                label="Enter Number of Sets: "
+                value={numberOfSets}
+                keyboardType="number-pad"
+                style={{ backgroundColor: "white" }}
+                onChangeText={(numberOfSets) => setNumberOfSets(numberOfSets)}
+              />
+              <View style={{ alignItems: "center" }}>
+                <Button
+                  mode="contained"
+                  onPress={() => {
+                    handleModalSubmit();
+                  }}
+                  style={styles.modalBtnStyle}
+                >
+                  Submit
+                </Button>
+              </View>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
       <View style={styles.frame1}>
         <ImageBackground
           style={styles.imgStyle}
@@ -58,7 +152,7 @@ function HomeScreen(props) {
             style={styles.myBtn}
             labelStyle={{ textTransform: "uppercase" }}
             onPress={() => {
-              handleClick();
+              setModalVisible(true);
             }}
           >
             {fontsLoaded ? (
@@ -124,6 +218,21 @@ const styles = StyleSheet.create({
     lineHeight: 25,
     textAlign: "center",
     color: "#FFFCFC",
+  },
+  modalContainer: {
+    flex: 1,
+    padding: 15,
+    // justifyContent: "center",
+    backgroundColor: "#DAE0E2",
+  },
+  modalBtnStyle: {
+    marginTop: 10,
+    width: 150,
+  },
+  listItems: {
+    backgroundColor: "#8B78E6",
+    marginBottom: 10,
+    borderRadius: 40,
   },
 });
 

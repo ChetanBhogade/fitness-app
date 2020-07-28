@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   Dimensions,
-  ImageBackground,
   Image,
 } from "react-native";
 import MyHeader from "../components/MyHeader";
@@ -177,7 +176,7 @@ export default class WorkoutScreen extends Component {
                         top: getFlexiblePixels((pixels = 7), (isWidth = false)),
                       }}
                     >
-                      Recommonded Sets
+                      Working Set
                     </Text>
 
                     <Text
@@ -217,7 +216,7 @@ export default class WorkoutScreen extends Component {
                         fontSize: 22,
                       }}
                     >
-                      3
+                      {this.data.currentSet} / {this.data.totalSet}
                     </Text>
 
                     <Text
