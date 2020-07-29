@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Image,
+  Dimensions,
 } from "react-native";
 import MyHeader from "../components/MyHeader";
 import { Button, TextInput, List } from "react-native-paper";
@@ -15,6 +16,8 @@ import { getFlexiblePixels } from "../MyUtils";
 import { useFonts } from "expo-font";
 import AsyncStorage from "@react-native-community/async-storage";
 import { data } from "../Utils";
+
+const SCREEN_WIDTH = Dimensions.get("window").width;
 
 function HomeScreen(props) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -156,7 +159,7 @@ function HomeScreen(props) {
             }}
           >
             {fontsLoaded ? (
-              <Text style={styles.btnText}>Let's GO</Text>
+              <Text style={styles.btnText}>Start Workout</Text>
             ) : (
               <Text>Loading...</Text>
             )}
@@ -198,9 +201,9 @@ const styles = StyleSheet.create({
   },
   myBtn: {
     position: "absolute",
-    width: getFlexiblePixels((pixels = 169), (isWidth = true)),
+    width: getFlexiblePixels((pixels = 235), (isWidth = true)),
     height: getFlexiblePixels((pixels = 58), (isWidth = false)),
-    left: 121,
+    left: (SCREEN_WIDTH - getFlexiblePixels((pixels = 235), (isWidth = true))) / 2, // 121,
     top: 0,
     backgroundColor: "#F3455A",
     borderRadius: 32,
@@ -214,10 +217,11 @@ const styles = StyleSheet.create({
     fontFamily: "Pacifico",
     fontStyle: "normal",
     fontWeight: "normal",
-    fontSize: 15,
-    lineHeight: 25,
+    fontSize: 18,
+    lineHeight: 28,
     textAlign: "center",
     color: "#FFFCFC",
+    textTransform: "capitalize"
   },
   modalContainer: {
     flex: 1,
